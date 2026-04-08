@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>WebGIS Akses Jalan Magelang - Dusun Mulungan Kulon</title>
+
+<!-- Mapbox -->
+<!-- Includes the Mapbox GL JS CSS stylesheet -->
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.css" rel="stylesheet">
+<!-- Imports the Mapbox GL JS bundle -->
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.20.0/mapbox-gl.js"></script>
+
+<!-- Font -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin:0;
+    font-family:'Poppins', sans-serif;
+}
+
+.header {
+    background: linear-gradient(
+        rgba(0, 0, 0, 0.515),
+        rgba(242, 172, 9, 0.4)
+    ),
+    url('https://pxhere.com/photos/ea/5c/...jpg') no-repeat center;
+
+    background-size: cover;
+    height:120px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+}
+
+#map {
+    width:100%;
+    height:500px;
+}
+
+#fly {
+    position:absolute;
+    top:10px;
+    right:10px;
+    z-index:1;
+    padding:6px 10px;
+    border:none;
+    background:#007bff;
+    color:white;
+    border-radius:5px;
+}
+
+.legend {
+    position:absolute;
+    bottom:20px;
+    left:20px;
+    background:white;
+    padding:10px;
+    border-radius:5px;
+    font-size:13px;
+}
+
+.legend span {
+    display:inline-block;
+    width:12px;
+    height:12px;
+    margin-right:5px;
+}
+
+.footer {
+    background:#222;
+    color:white;
+    text-align:center;
+    padding:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <h2>Dusun Mulungan Kulon, Sendangadi, Mlati, Sleman, Yogyakarta</h2>
+</div>
+
+<div style="position:relative;">
+    <button id="fly" onclick="flyToLokasi()">Ke Lokasi</button>
+    <div id="map"></div>
+
+    <div class="legend">
+        <b>Keterangan</b><br>
+        <div><span style="background:#00ff00;"></span>Dekat Jalan</div>
+        <div><span style="background:#ffaa00;"></span>Jauh</div>
+        <div><span style="background:#ff0000;"></span>Jalan</div>
+    </div>
+</div>
+
+<div class="footer">
+    Imeldha Nuradharani (117230002) © 2026
+</div>
+
+
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoiZGhybjIxIiwiYSI6ImNtbm9meDNxcTI0Y2sycXEyaG43dnJqajIifQ.p1s6U3VJQR6jJu0kSN2WLQ';
+
+const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/light-v11',
+    center: [110.362, -7.727],
+    zoom: 16,
+    projection: 'mercator'
+});
+
+map.addControl(new mapboxgl.NavigationControl());
+
+map.on('load', () => {
+
+    // ===== JALAN =====
+    map.addSource('jalan', {
+        type: 'geojson',
+        data: 'assets/geojson/Jalan_Magelang.geojson'
+    });
+
+    map.addLayer({
+        id: 'jalan',
+        type: 'line',
+        source: 'jalan',
+        paint: {
+            'line-color': '#ff0000',
+            'line-width': 3
+        }
+    });
+
+    // ===== DEKAT =====
+    map.addSource('dekat', {
+        type: 'geojson',
+        data: 'assets/geojson/Bangunan_Dekat_Jamal.geojson'
+    });
+
+    map.addLayer({
+        id: 'dekat',
+        type: 'fill',
+        source: 'dekat',
+        paint: {
+            'fill-color': '#00ff00',
+            'fill-opacity': 0.6
+        }
+    });
+
+    map.addLayer({
+        id: 'outline-dekat',
+        type: 'line',
+        source: 'dekat',
+        paint: {
+            'line-color': 'black',
+            'line-width': 1
+        }
+    });
+
+    // ===== JAUH =====
+    map.addSource('jauh', {
+        type: 'geojson',
+        data: 'assets/geojson/Bangunan_Jauh_Jamal.geojson'
+    });
+
+    map.addLayer({
+        id: 'jauh',
+        type: 'fill',
+        source: 'jauh',
+        paint: {
+            'fill-color': '#ffaa00',
+            'fill-opacity': 0.6
+        }
+    });
+
+    map.addLayer({
+        id: 'outline-jauh',
+        type: 'line',
+        source: 'jauh',
+        paint: {
+            'line-color': 'black',
+            'line-width': 1
+        }
+    });
+
+    // ===== POPUP =====
+    map.on('click', 'dekat', (e) => {
+        const props = e.features[0].properties;
+        let isi = "<b>Informasi Bangunan</b><br>";
+
+        for (let key in props) {
+            isi += key + ": " + props[key] + "<br>";
+        }
+
+        new mapboxgl.Popup()
+            .setLngLat(e.lngLat)
+            .setHTML(isi)
+            .addTo(map);
+    });
+
+});
+
+// FLY BUTTON
+function flyToLokasi() {
+    map.flyTo({
+        center: [110.37, -7.77],
+        zoom: 17
+    });
+}
+</script>
